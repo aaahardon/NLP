@@ -8,11 +8,11 @@ Tags: Group Five Sigma
 By Group "Five Sigma"
 
 
-This blog aims to explore curve trade opportunities in U.S. Treasuries by analyzing sentiments extracted from FOMC minutes. Building upon the methodology outlined in our previous blog, we meticulously refined our sentiment score calculation process to address encountered challenges. After experimenting with three different methods for calculating sentiment scores, we derived results suitable for regression analysis. Subsequently, we conducted regression analyses separately for the short and long ends of the yield curve.We elucidate the rationale behind selecting independent variables and detail how we accounted for them in our regression models using the Ordinary Least Squares methodology. Additionally, we explore other variables influencing 10-year yields and conclude that sentiment scores alone may not adequately explain fluctuations in long-term yields. Overall, our findings suggest that while sentiment analysis proves valuable for forecasting the short end of the yield curve, additional factors beyond sentiment are crucial for comprehensively understanding and predicting movements in long-term Treasury yields.
+This blog aims to explore curve trade opportunities in U.S. Treasuries by analyzing sentiments extracted from FOMC minutes. In the first part, we meticulously refined our sentiment score calculation process to address encountered challenges building upon the methodology outlined in our previous blog. After experimenting with three different methods for calculating sentiment scores, we derived results suitable for regression analysis. In the second part, we conducted regression analyses separately for the short and long ends of the yield curve.We elucidate the rationale behind selecting independent variables and detail how we accounted for them in our regression models using the Ordinary Least Squares methodology. Additionally, we explore other variables influencing 10-year yields and conclude that sentiment scores alone may not adequately explain fluctuations in long-term yields. Overall, our findings suggest that while sentiment analysis proves valuable for forecasting the short end of the yield curve, additional factors beyond sentiment are crucial for comprehensively understanding and predicting movements in long-term Treasury yields.
 
 
 
-# Sentiment Score 
+# Part I：Sentiment Score Calculation
 
 To construct an appropriate measurement that reflects the sentimental information behind FOMC minutes, and then makes predictions about the interest rate fluctuation indirectly, we tried 3 methods - **Keras**, **TextBlob** and **Pysentiment2** to compute polarity scores showing the sentimental tendency of the Federal Reserve on interest rate policy.
 
@@ -35,7 +35,7 @@ Keras is a Python library for building and training deep learning models, offeri
 
 #### Process
 
-(1). **Preparation:** 
+**(1) Preparation:** 
     In the initial phase, we assemble a comprehensive dataset comprising text samples paired with their corresponding sentiment labels. For instance, a sample might be labeled as positive or negative based on its sentiment. This dataset is then split into distinct subsets for training, validation, and testing.
     Then we load the pretrained **Word2Vec** model and use it to obtain the embedding matrix for words. This embedding matrix will be utilized in the Embedding layer of the model to map words from the text data to vector representations. By mapping words to the corresponding word vectors in the Word2Vec model, we can obtain semantic information for words and use them as inputs to the neural network model.
 
@@ -62,7 +62,7 @@ sentences = ["I loved the NLP!", "The result was terrible.", "The method was ave
 labels = [1, 0, 0]  # 1 for positive sentiment, 0 for negative sentiment
 ```
 
-(2). **Text Processing:** 
+**(2) Text Processing:** 
     Text processing involves removing noise, special characters, and stop words from the text to ensure the data is clean and ready for analysis. The detailed process can be found in the Text Preprocessing section of our previous blog.
     Then, we convert the textual tokens into numerical representations. Initially, we read the cleaned text data from a CSV file and store it in a DataFrame. The text is tokenized, breaking it down into individual words or tokens, and parameters such as vocabulary size and maximum sentence length are defined. Using the Tokenizer class from the Keras library, we convert the text tokens into numerical sequences, with each word represented by a unique integer based on its frequency in the corpus. These sequences are padded to a fixed length to ensure uniform input size, crucial for neural network processing.
 
@@ -81,7 +81,7 @@ sequences = tokenizer.texts_to_sequences(sentences)
 padded_sequences = pad_sequences(sequences, maxlen=max_length)
 ```
 
-(3). **Model Building:** In this stage, we construct the model architecture by adding layers such as embedding layers, LSTM/GRU layers, or convolutional layers. We experiment with different architectures, layer types, and hyperparameters to identify the optimal configuration for our model.
+**(3) Model Building:** In this stage, we construct the model architecture by adding layers such as embedding layers, LSTM/GRU layers, or convolutional layers. We experiment with different architectures, layer types, and hyperparameters to identify the optimal configuration for our model.
 
 ```python
 # Construct the CNN model architecture
@@ -103,7 +103,7 @@ model.add(GlobalMaxPooling1D())
 model.add(Dense(1, activation='sigmoid'))
 ```   
     
-(4). **Model Training:** The model is trained on the training dataset using the `fit()` function. During training, we fine-tune parameters such as batch size, number of epochs, and learning rate to enhance model performance. We closely monitor the training process and evaluate the performance of model on the validation set to ensure its effectiveness.
+**(4) Model Training:** The model is trained on the training dataset using the `fit()` function. During training, we fine-tune parameters such as batch size, number of epochs, and learning rate to enhance model performance. We closely monitor the training process and evaluate the performance of model on the validation set to ensure its effectiveness.
 
 ```python
 # Compile and train the model
@@ -111,7 +111,7 @@ model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy']
 model.fit(padded_sequences, np.array(labels), epochs=10, batch_size=32, validation_split=0.2)
 ```
 
-(5). **Model Prediction:** Once the model is trained, we preprocess new data in the same manner as the training data. The preprocessed data is then fed into the model to obtain predictions. This process involves importing relevant modules and functions, tokenizing the text to form a sequence, calling the LSTM model function, and adjusting parameters for optimal performance. Finally, we input test texts to make predictions, leveraging the predictive capabilities of our trained model.
+**(5) Model Prediction:** Once the model is trained, we preprocess new data in the same manner as the training data. The preprocessed data is then fed into the model to obtain predictions. This process involves importing relevant modules and functions, tokenizing the text to form a sequence, calling the LSTM model function, and adjusting parameters for optimal performance. Finally, we input test texts to make predictions, leveraging the predictive capabilities of our trained model.
 
 ```python
 # Preprocess new data and make predictions
@@ -135,8 +135,8 @@ TextBlob is a Python library for natural language processing (NLP) tasks, offeri
 
 #### Process
 
-We start by importing the necessary modules and defining a function called get_sentence_sentiment_scores. This function accepts a list of texts as input and calculates sentiment scores for each sentence within the texts.
-Within the function, we iterate through each text, splitting it into sentences using the sentences method in TextBlob. For each sentence, sentiment scores are computed using the sentiment.polarity attribute in TextBlob. These scores, along with the count of sentences in each text, are collected into two lists: sentence_sentiment_scores and sentence_counts, respectively. Then, the function returns these lists, providing sentiment scores for each sentence and the number of sentences in each text.
+We start by importing the necessary modules and defining a function called *get_sentence_sentiment_scores*. This function accepts a list of texts as input and calculates sentiment scores for each sentence within the texts.
+Within the function, we iterate through each text, splitting it into sentences using the sentences method in TextBlob. For each sentence, sentiment scores are computed using the *sentiment.polarity* attribute in TextBlob. These scores, along with the count of sentences in each text, are collected into two lists: *sentence_sentiment_scores* and *sentence_counts*, respectively. Then, the function returns these lists, providing sentiment scores for each sentence and the number of sentences in each text.
 
 ```python
 from textblob import TextBlob
@@ -162,7 +162,7 @@ def get_sentence_sentiment_scores(text_list):
 # Get the sentiment scores for each sentence and the count of sentences for each text
 sentence_scores, sentence_counts = get_sentence_sentiment_scores(text_list)
 ```
-Next, we tally the sentiment scores of all sentences in each text, computing their average by dividing the total by the number of sentences. These average scores, paired with their corresponding text identifiers, are structured into a DataFrame. Finally, we save this DataFrame as a CSV file named 'average_sentiment_scores.csv'. This file offers insights into the prevailing sentiment trend by providing average sentiment scores for each unit of analysis.
+Next, we tally the sentiment scores of all sentences in each text, computing their average by dividing the total by the number of sentences. These average scores, paired with their corresponding text identifiers, are structured into a DataFrame. Finally, we save this DataFrame as a CSV file named *average_sentiment_scores.csv*. This file offers insights into the prevailing sentiment trend by providing average sentiment scores for each unit of analysis.
 
 ```python
 avg_sentiment_scores = []
@@ -185,9 +185,9 @@ The scatter plot below illustrates the sentiment scores for each FOMC minute, wh
 
 The unexpected outcomes prompt us a deeper exploration of potential factors influencing these results. Two primary considerations emerged:
 
-(1).**Textual Characteristics:** Linguistic biases inherent in speeches manifested in skewed results favoring positive values. This phenomenon underscores the need for a nuanced understanding of language nuances and biases.
+**(1) Textual Characteristics:** Linguistic biases inherent in speeches manifested in skewed results favoring positive values. This phenomenon underscores the need for a nuanced understanding of language nuances and biases.
   
-(2).**Pattern Library Suitability:** TextBlob method relies solely on pre-defined sentiment scores without considering the nuances of financial language or the specific context of FOMC minutes. The inherent limitations of models of the Pattern library in capturing the intricacies of specific language styles observed in minutes. These models may inadequately capture the complexities of financial language, thereby compromising the accuracy of sentiment analysis outcomes.
+**(2) Pattern Library Suitability:** TextBlob method relies solely on pre-defined sentiment scores without considering the nuances of financial language or the specific context of FOMC minutes. The inherent limitations of models of the Pattern library in capturing the intricacies of specific language styles observed in minutes. These models may inadequately capture the complexities of financial language, thereby compromising the accuracy of sentiment analysis outcomes.
 
 
 ### 2.3. Pysentiment2
@@ -199,8 +199,8 @@ We chose the Loughran and McDonald Financial Sentiment Dictionaries which are se
 
 ####  Process
 
-The following code demonstrates how we invoke PySentiment2 and utilize the Loughran and McDonald Financial Sentiment Dictionaries to compute sentiment scores.
-We first import the LM class from the PySentiment2 module. We then initialize an instance of the LM class. Next, we define a function called calculate_sentiment_score which takes a text input and computes the sentiment score using the Loughran and McDonald Financial Sentiment Dictionaries provided by PySentiment2. Finally, we demonstrate how to use this function to calculate the sentiment score for an example text.
+The following code demonstrates how we invoke PySentiment2 and utilize *the Loughran and McDonald Financial Sentiment Dictionaries* to compute sentiment scores.
+We first import the LM class from the PySentiment2 module. We then initialize an instance of the LM class. Next, we define a function called calculate_sentiment_score which takes a text input and computes the sentiment score using *the Loughran and McDonald Financial Sentiment Dictionaries* provided by PySentiment2. Finally, we demonstrate how to use this function to calculate the sentiment score for an example text.
 
 ```python
 # Import the LM class from the Pysentiment2 module
@@ -256,12 +256,12 @@ The scatter plot below illustrates the sentiment scores for each FOMC minute, wh
 
 
 
-# Regression Analysis 
+# Part II：Regression Analysis 
 
 
 ## Short-end 
 
-We conducted an analysis to assess the relationship between sentiment scores, obtained via PySentiment, and 2-year Treasury yields, with the timing of Federal Open Market Committee (FOMC) meetings serving as a reference point on the horizontal axis. The graphical representation revealed an inverse relationship between the two variables, supporting our initial hypothesis that sentiment scores could be indicative of future movements in 2-year Treasury yields. 
+We conducted an analysis to assess the relationship between sentiment scores, obtained via PySentiment2, and 2-year Treasury yields, with the timing of Federal Open Market Committee (FOMC) meetings serving as a reference point on the horizontal axis. The graphical representation revealed an inverse relationship between the two variables, supporting our initial hypothesis that sentiment scores could be indicative of future movements in 2-year Treasury yields. 
 
 Prior to conducting regression analysis, we standardized the frequency of sentiment score data to align with other datasets. This adjustment was necessary because FOMC meetings, which occur eight times annually, are not evenly distributed throughout the year. To achieve uniformity, we recalibrated the dates of FOMC meetings to the end of the corresponding month; for instance, a meeting in mid-December would be represented as December 31st. This allowed us to bring forward sentiment scores to months that do not have FOMC meetings, facilitating our regression analysis. 
 
@@ -334,6 +334,9 @@ model.fit(X ,y)
 print(model.score(X, y))
 ```
 
+The graph below is a 3D scatter plot with sentiment scores, PCE YoY, and 2-year yields plotted on the x, y, and z axes, respectively. By visualizing the relationships among these variables, the graph helps us assess whether there are any discernible patterns or correlations.
+
+![Short_end_regression](.{static}/images/Five-Sigma_02_Short_end_regression.png)
 
 ## Long-End
 
